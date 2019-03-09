@@ -5,6 +5,9 @@ class_proxy - a transparent proxy class for Python
 .. image:: https://badge.fury.io/gh/herczy%2Fclass_proxy.svg
     :target: https://badge.fury.io/gh/herczy%2Fclass_proxy
 
+.. image:: https://travis-ci.org/herczy/class_proxy.svg?branch=master
+    :target: https://travis-ci.org/herczy/class_proxy
+
 Introduction
 ============
 
@@ -13,7 +16,7 @@ proxy can be any class.
 
 For example, lets say that we have a parser and need to be able to tell where
 a value came from (source file name, line number and column). We might have a
-:class:`Source` class handling this information:
+`Source` class handling this information:
 
 .. code-block:: python
 
@@ -69,16 +72,16 @@ The solution is to make a wrapper for the scalar classes:
    other_number = IntProxy(456, Source('example', 7, 8))
    print(number < other_number)  # will print: True
 
-The :func:`class_proxy.instance` call will return the original, wrapped
+The `class_proxy.instance` call will return the original, wrapped
 instance for the proxy.
 
-The :func:`class_proxy.wrap_with` call will create a proxy class expecting the
+The `class_proxy.wrap_with` call will create a proxy class expecting the
 wrapped value as the first parameter, while the remaining parameters are passed
-to the :class:`SourceValue` constructor.
+to the `SourceValue` constructor.
 
-When retrieving attributes from the proxy class (e.g. :class:`IntProxy`), it
-will look up the proxy base class first (e.g. :class:`SourceValue`) and later
-the wrapped class (e.g. :class:`int`). This is the reason we care about what
+When retrieving attributes from the proxy class (e.g. `IntProxy`), it
+will look up the proxy base class first (e.g. `SourceValue`) and later
+the wrapped class (e.g. `int`). This is the reason we care about what
 class we're wrapping: we want to be able to wrap the class too, not just
 the instance.
 
@@ -93,9 +96,9 @@ If you don't care about class values, you can also omit the wrapped class:
 
    generic = GenericProxy(SomeGenericClass(1, 2), Source('example', 10, 0))
 
-In this case, we wrap the :class:`object`.
+In this case, we wrap the `object`.
 
-There is also a convenience wrapper for the :func:`wrap_with` function, in case
+There is also a convenience wrapper for the `wrap_with` function, in case
 you don't need to define it for multiple wrapped classes:
 
 .. code-block:: python
