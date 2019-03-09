@@ -18,7 +18,7 @@ IGNORE_WRAPPED_METHODS = frozenset(
 )
 
 
-def wrap_with(class_0, class_1=None, ignore_base_methods=IGNORE_WRAPPED_METHODS):
+def wrap_with(class_0, class_1=None):
     """
     Wrap a class with a proxy.
 
@@ -47,7 +47,7 @@ def wrap_with(class_0, class_1=None, ignore_base_methods=IGNORE_WRAPPED_METHODS)
         wrapped_class = class_0
         proxy_class = class_1
 
-    return _wrap_with_raw(wrapped_class, proxy_class, ignore_base_methods)
+    return _wrap_with_raw(wrapped_class, proxy_class)
 
 
 def proxy_of(wrapped_class):
@@ -109,12 +109,12 @@ def instance(obj):
     return obj.__instance__
 
 
-def _wrap_with_raw(wrapped_class, proxy_class, ignore_base_methods):
+def _wrap_with_raw(wrapped_class, proxy_class):
     instances = _instance_wrapper()
 
     common = _mro_common(wrapped_class, proxy_class)
     base_methods = _resolve_proxy_members(proxy_class, common)
-    base_methods.update(ignore_base_methods)
+    base_methods.update(IGNORE_WRAPPED_METHODS)
     resolution = _resolve_wrapped_members(wrapped_class, base_methods)
 
     members = {}
