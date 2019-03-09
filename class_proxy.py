@@ -1,3 +1,11 @@
+"""
+Transparent class proxy module.
+
+A wrapper class can be created using the function `wrap_with` or
+the decorators `proxy_of` (if the wrapped object type is specified
+explicitly) or `proxy` (if the wrapped object isn't specified).
+"""
+
 IGNORE_WRAPPED_METHODS = frozenset(
     (
         "__new__",
@@ -11,6 +19,26 @@ IGNORE_WRAPPED_METHODS = frozenset(
 
 
 def wrap_with(class_0, class_1=None, ignore_base_methods=IGNORE_WRAPPED_METHODS):
+    """
+    Wrap a class with a proxy.
+
+    This function can be called in two ways:
+
+    If the wrapped class is specified, `wrap` will take two class parameters,
+    the wrapped class and the proxy class:
+
+    >>> class Proxy(object):
+    ...     pass
+    >>> print(wrap_with(int, Proxy).__name__)
+    Proxy[int]
+
+    If the wrapped class is not specified, `wrap` will only take the proxy class
+    as a parameter:
+
+    >>> print(wrap_with(Proxy).__name__)
+    Proxy[object]
+    """
+
     if class_1 is None:
         wrapped_class = object
         proxy_class = class_0
@@ -23,6 +51,20 @@ def wrap_with(class_0, class_1=None, ignore_base_methods=IGNORE_WRAPPED_METHODS)
 
 
 def proxy_of(wrapped_class):
+    """
+    Decorator for making typed proxy classes.
+
+    This works like the `wrap_with` method, except as a decorator.
+
+    Usage:
+
+    >>> @proxy_of(int)
+    ... class Proxy(object):
+    ...     pass
+    >>> print(Proxy.__name__)
+    Proxy[int]
+    """
+
     def _decorator(proxy_class):
         return wrap_with(wrapped_class, proxy_class)
 
@@ -30,10 +72,40 @@ def proxy_of(wrapped_class):
 
 
 def proxy(proxy_class):
+    """
+    Decorator for making generic proxy classes.
+
+    This works like the `wrap_with` method, except as a decorator.
+
+    Usage:
+
+    >>> @proxy
+    ... class Proxy(object):
+    ...     pass
+    >>> print(Proxy.__name__)
+    Proxy[object]
+    """
+
     return wrap_with(proxy_class)
 
 
 def instance(obj):
+    """
+    Return the instance the proxy is wrapping.
+
+    Usage:
+
+    >>> class Example(object):
+    ...     pass
+    >>> class Proxy(object):
+    ...     pass
+    >>> Proxy = wrap_with(Example)
+    >>> example = Example()
+    >>> proxy_obj = Proxy(example)
+    >>> instance(proxy_obj) is example
+    True
+    """
+
     return obj.__instance__
 
 
