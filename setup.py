@@ -6,8 +6,14 @@ try:
 except ImportError:
     from distutils.core import setup
 
-readme = open("README.rst").read()
-history = open("HISTORY.rst").read().replace(".. :changelog:", "")
+import os.path
+
+base_path = os.path.dirname(__file__)
+with open(os.path.join(base_path, "README.rst")) as readme_file:
+    readme = readme_file.read()
+
+with open(os.path.join(base_path, "HISTORY.rst")) as history_file:
+    history = history_file.read().replace(".. :changelog:", "")
 
 setup(
     name="class_proxy",
@@ -18,6 +24,7 @@ setup(
     author_email="hercinger.viktor@gmail.com",
     url="https://github.com/herczy/class_proxy",
     py_modules=["class_proxy"],
+    include_package_data=True,
     license="MIT",
     keywords="class_proxy proxy transparent",
     zip_safe=True,
