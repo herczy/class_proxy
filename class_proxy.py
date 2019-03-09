@@ -6,6 +6,7 @@ the decorators `proxy_of` (if the wrapped object type is specified
 explicitly) or `proxy` (if the wrapped object isn't specified).
 """
 
+__all__ = ["wrap_with", "proxy_of", "proxy", "instance"]
 IGNORE_WRAPPED_METHODS = frozenset(
     (
         "__new__",
