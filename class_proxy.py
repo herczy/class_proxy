@@ -10,6 +10,18 @@ IGNORE_WRAPPED_METHODS = frozenset(
 )
 
 
+def wrap_with(class_0, class_1=None, ignore_base_methods=IGNORE_WRAPPED_METHODS):
+    if class_1 is None:
+        wrapped_class = object
+        proxy_class = class_0
+
+    else:
+        wrapped_class = class_0
+        proxy_class = class_1
+
+    return _wrap_with_raw(wrapped_class, proxy_class, ignore_base_methods)
+
+
 def proxy_of(wrapped_class):
     def _decorator(proxy_class):
         return wrap_with(wrapped_class, proxy_class)
@@ -17,11 +29,15 @@ def proxy_of(wrapped_class):
     return _decorator
 
 
+def proxy(proxy_class):
+    return wrap_with(proxy_class)
+
+
 def instance(obj):
     return obj.__instance__
 
 
-def wrap_with(wrapped_class, proxy_class, ignore_base_methods=IGNORE_WRAPPED_METHODS):
+def _wrap_with_raw(wrapped_class, proxy_class, ignore_base_methods):
     instances = _instance_wrapper()
 
     common = _mro_common(wrapped_class, proxy_class)
