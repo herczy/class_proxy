@@ -5,6 +5,9 @@ class_proxy - a transparent proxy class for Python
 .. image:: https://badge.fury.io/gh/herczy%2Fclass_proxy.svg
     :target: https://badge.fury.io/gh/herczy%2Fclass_proxy
 
+.. image:: https://badge.fury.io/py/class_proxy.svg
+    :target: https://badge.fury.io/py/class_proxy
+
 .. image:: https://travis-ci.org/herczy/class_proxy.svg?branch=master
     :target: https://travis-ci.org/herczy/class_proxy
 
