@@ -1,3 +1,80 @@
+IGNORE_WRAPPED_METHODS = frozenset(
+    (
+        "__new__",
+        "__init__",
+        "__getattr__",
+        "__setattr__",
+        "__delattr__",
+        "__getattribute__",
+    )
+)
+
+
+def proxy_of(wrapped_class):
+    def _decorator(proxy_class):
+        return wrap_with(wrapped_class, proxy_class)
+
+    return _decorator
+
+
+def instance(obj):
+    return obj.__instance__
+
+
+def wrap_with(wrapped_class, proxy_class, ignore_base_methods=IGNORE_WRAPPED_METHODS):
+    instances = _instance_wrapper()
+
+    common = _mro_common(wrapped_class, proxy_class)
+    base_methods = _resolve_proxy_members(proxy_class, common)
+    base_methods.update(ignore_base_methods)
+    resolution = _resolve_wrapped_members(wrapped_class, base_methods)
+
+    members = {}
+    members.update(
+        {
+            name: _proxied_value(base, name, instances)
+            for name, base in resolution.items()
+        }
+    )
+    members.update(proxy_class.__dict__)
+
+    proxy_init = _resolve_without_get(proxy_class, "__init__")
+
+    @_overwrite_method(members)
+    def __init__(self, inner, *args, **kwargs):
+        if not isinstance(inner, wrapped_class):
+            raise TypeError(
+                "type {!r} cannot wrap object {!r} with type {!r}".format(
+                    type(self), inner, type(inner)
+                )
+            )
+        instances.set_instance(self, inner)
+        proxy_init(self, *args, **kwargs)
+
+    @_overwrite_method(members, name="__instance__")
+    @property
+    def _instance_property(self):
+        return instances.get_instance(self)
+
+    return type(
+        "{}[{}]".format(proxy_class.__name__, wrapped_class.__name__),
+        (proxy_class,),
+        members,
+    )
+
+
+def _overwrite_method(members, name=None):
+    def _decorator(func):
+        fname = name
+        if fname is None:
+            fname = func.__name__
+
+        members[fname] = func
+        return func
+
+    return _decorator
+
+
 class _deleted(object):
     pass
 
@@ -90,11 +167,7 @@ def _mro_common(left, right):
     return result
 
 
-def wrap_with(wrapped_class, proxy_class):
-    instances = _instance_wrapper()
-
-    common = _mro_common(wrapped_class, proxy_class)
-
+def _resolve_proxy_members(proxy_class, common):
     base_methods = set()
     for base in reversed(proxy_class.__mro__):
         if base in common:
@@ -102,69 +175,16 @@ def wrap_with(wrapped_class, proxy_class):
 
         for name in base.__dict__.keys():
             base_methods.add(name)
+    return base_methods
 
+
+def _resolve_wrapped_members(wrapped_class, base_methods):
     resolution = {}
     for base in reversed(wrapped_class.__mro__):
         for name in base.__dict__.keys():
             if name in base_methods:
                 continue
 
-            if name in {
-                "__new__",
-                "__init__",
-                "__getattr__",
-                "__setattr__",
-                "__delattr__",
-                "__getattribute__",
-            }:
-                continue
-
             resolution[name] = base
 
-    members = {}
-    members.update(
-        {
-            name: _proxied_value(base, name, instances)
-            for name, base in resolution.items()
-            if name not in {"__getattr__", "__getattribute__"}
-        }
-    )
-    members.update(proxy_class.__dict__)
-
-    proxy_init = _resolve_without_get(proxy_class, "__init__")
-
-    def _init_wrapper(self, inner, *args, **kwargs):
-        if not isinstance(inner, wrapped_class):
-            raise TypeError(
-                "type {!r} cannot wrap object {!r} with type {!r}".format(
-                    type(self), inner, type(inner)
-                )
-            )
-        instances.set_instance(self, inner)
-        proxy_init(self, *args, **kwargs)
-
-    _init_wrapper.__name__ = "__init__"
-    members["__init__"] = _init_wrapper
-
-    @property
-    def __instance__(self):
-        return instances.get_instance(self)
-
-    members["__instance__"] = __instance__
-
-    return type(
-        "{}[{}]".format(proxy_class.__name__, wrapped_class.__name__),
-        (proxy_class,),
-        members,
-    )
-
-
-def proxy_of(wrapped_class):
-    def _decorator(proxy_class):
-        return wrap_with(wrapped_class, proxy_class)
-
-    return _decorator
-
-
-def instance(obj):
-    return obj.__instance__
+    return resolution
