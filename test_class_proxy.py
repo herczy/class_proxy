@@ -1,10 +1,11 @@
 import unittest
 
-from class_proxy import wrap_with
+from class_proxy import wrap_with, reset_proxy_cache
 
 
 class TestClassProxy(unittest.TestCase):
     def setUp(self):
+        reset_proxy_cache()
         self.proxy_class = wrap_with(Base, BaseProxy)
         self.base = Base()
         self.instance = self.proxy_class(self.base, 1)
@@ -67,6 +68,12 @@ class TestClassProxy(unittest.TestCase):
 
     def test_error_when_trying_to_wrap_wrong_object_type(self):
         self.assertRaises(TypeError, self.proxy_class, 0, 1)
+
+    def test_proxy_classes_are_cached(self):
+        proxy0 = wrap_with(Base, BaseProxy)
+        proxy1 = wrap_with(Base, BaseProxy)
+
+        self.assertIs(proxy0, proxy1)
 
 
 class Base(object):

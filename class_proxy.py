@@ -6,7 +6,7 @@ the decorators `proxy_of` (if the wrapped object type is specified
 explicitly) or `proxy` (if the wrapped object isn't specified).
 """
 
-__all__ = ["wrap_with", "proxy_of", "proxy", "instance"]
+__all__ = ["wrap_with", "proxy_of", "proxy", "instance", "reset_proxy_cache"]
 IGNORE_WRAPPED_METHODS = frozenset(
     (
         "__new__",
@@ -17,6 +17,7 @@ IGNORE_WRAPPED_METHODS = frozenset(
         "__getattribute__",
     )
 )
+PROXY_CACHE = {}
 
 
 def wrap_with(class_0, class_1=None):
@@ -110,7 +111,28 @@ def instance(obj):
     return obj.__instance__
 
 
+def reset_proxy_cache():
+    """
+    Reset all cached proxy classes.
+
+    Only call this if you want to clear all cached proxy classes.
+    """
+
+    global PROXY_CACHE
+    PROXY_CACHE.clear()
+
+
 def _wrap_with_raw(wrapped_class, proxy_class):
+    global PROXY_CACHE
+
+    key = (wrapped_class, proxy_class)
+    if key not in PROXY_CACHE:
+        PROXY_CACHE[key] = _create_raw_wrapper(wrapped_class, proxy_class)
+
+    return PROXY_CACHE[key]
+
+
+def _create_raw_wrapper(wrapped_class, proxy_class):
     instances = _instance_wrapper()
 
     common = _mro_common(wrapped_class, proxy_class)
