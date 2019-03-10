@@ -17,7 +17,7 @@ with open(os.path.join(base_path, "HISTORY.rst")) as history_file:
 
 setup(
     name="class_proxy",
-    version="1.0.0",
+    version="1.0.1",
     description="class_proxy is a transparent proxy for Python",
     long_description=readme + "\n\n" + history,
     author="Viktor Hercinger",
