@@ -20,7 +20,7 @@ IGNORE_WRAPPED_METHODS = frozenset(
 PROXY_CACHE = {}
 
 
-def wrap_with(class_0, class_1=None):
+def wrap_with(class_0, class_1=None, name=None):
     """
     Wrap a class with a proxy.
 
@@ -39,6 +39,10 @@ def wrap_with(class_0, class_1=None):
 
     >>> print(wrap_with(Proxy).__name__)
     Proxy[object]
+
+    Custom class names can also be specified:
+    >>> print(wrap_with(int, Proxy, name="MyName").__name__)
+    MyName
     """
 
     if class_1 is None:
@@ -49,10 +53,10 @@ def wrap_with(class_0, class_1=None):
         wrapped_class = class_0
         proxy_class = class_1
 
-    return _wrap_with_raw(wrapped_class, proxy_class)
+    return _wrap_with_raw(wrapped_class, proxy_class, name)
 
 
-def proxy_of(wrapped_class):
+def proxy_of(wrapped_class, name=None):
     """
     Decorator for making typed proxy classes.
 
@@ -65,10 +69,17 @@ def proxy_of(wrapped_class):
     ...     pass
     >>> print(Proxy.__name__)
     Proxy[int]
+
+    Custom names can also be specified:
+    >>> @proxy_of(int, name="MyProxy")
+    ... class Proxy(object):
+    ...     pass
+    >>> print(Proxy.__name__)
+    MyProxy
     """
 
     def _decorator(proxy_class):
-        return wrap_with(wrapped_class, proxy_class)
+        return wrap_with(wrapped_class, proxy_class, name)
 
     return _decorator
 
@@ -122,17 +133,17 @@ def reset_proxy_cache():
     PROXY_CACHE.clear()
 
 
-def _wrap_with_raw(wrapped_class, proxy_class):
+def _wrap_with_raw(wrapped_class, proxy_class, name):
     global PROXY_CACHE
 
-    key = (wrapped_class, proxy_class)
+    key = (wrapped_class, proxy_class, name)
     if key not in PROXY_CACHE:
-        PROXY_CACHE[key] = _create_raw_wrapper(wrapped_class, proxy_class)
+        PROXY_CACHE[key] = _create_raw_wrapper(wrapped_class, proxy_class, name)
 
     return PROXY_CACHE[key]
 
 
-def _create_raw_wrapper(wrapped_class, proxy_class):
+def _create_raw_wrapper(wrapped_class, proxy_class, name):
     instances = _instance_wrapper()
 
     common = _mro_common(wrapped_class, proxy_class)
@@ -167,11 +178,10 @@ def _create_raw_wrapper(wrapped_class, proxy_class):
     def _instance_property(self):
         return instances.get_instance(self)
 
-    return type(
-        "{}[{}]".format(proxy_class.__name__, wrapped_class.__name__),
-        (proxy_class,),
-        members,
-    )
+    if name is None:
+        name = "{}[{}]".format(proxy_class.__name__, wrapped_class.__name__)
+
+    return type(name, (proxy_class,), members)
 
 
 def _overwrite_method(members, name=None):

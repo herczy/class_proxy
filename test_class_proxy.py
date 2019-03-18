@@ -1,6 +1,6 @@
 import unittest
 
-from class_proxy import wrap_with, reset_proxy_cache
+from class_proxy import wrap_with, reset_proxy_cache, proxy_of
 
 
 class TestClassProxy(unittest.TestCase):
@@ -74,6 +74,16 @@ class TestClassProxy(unittest.TestCase):
         proxy1 = wrap_with(Base, BaseProxy)
 
         self.assertIs(proxy0, proxy1)
+
+    def test_overwrite_proxy_name_using_wrap_with(self):
+        proxy = wrap_with(Base, BaseProxy, name="CustomName")
+
+        self.assertEqual("CustomName", proxy.__name__)
+
+    def test_overwrite_proxy_name_using_proxy_of(self):
+        proxy = proxy_of(Base, name="CustomName")(BaseProxy)
+
+        self.assertEqual("CustomName", proxy.__name__)
 
 
 class Base(object):
